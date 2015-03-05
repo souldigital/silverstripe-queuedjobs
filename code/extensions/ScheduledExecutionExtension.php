@@ -35,6 +35,7 @@ class ScheduledExecutionExtension extends DataExtension {
 			'Root.Schedule',
 			_t('ScheduledExecution.ScheduleTabTitle', 'Schedule')
 		);
+		$fields->removeByName(array("FirstExecution", "ExecuteInterval", "ExecuteEvery", "ExecuteFree", "ScheduledJobID"));
 		$fields->addFieldsToTab('Root.Schedule', array(
 			$dt = new Datetimefield('FirstExecution', _t('ScheduledExecution.FIRST_EXECUTION', 'First Execution')),
 			FieldGroup::create(
@@ -88,15 +89,15 @@ class ScheduledExecutionExtension extends DataExtension {
 				$this->owner->ScheduledJobID = 0;
 			}
 
-			if (!$this->owner->ScheduledJobID) {
-				$job = new ScheduledExecutionJob($this->owner);
-				$time = date('Y-m-d H:i:s');
-				if ($this->owner->FirstExecution) {
-					$time = date('Y-m-d H:i:s', strtotime($this->owner->FirstExecution));
-				}
+				if (!$this->owner->ScheduledJobID) {
+					$job = new ScheduledExecutionJob($this->owner);
+					$time = date('Y-m-d H:i:s');
+					if ($this->owner->FirstExecution) {
+						$time = date('Y-m-d H:i:s', strtotime($this->owner->FirstExecution));
+					}
 
-				$this->owner->ScheduledJobID = singleton('QueuedJobService')->queueJob($job, $time);
-			}
+					$this->owner->ScheduledJobID = singleton('QueuedJobService')->queueJob($job, $time);
+				}
 		}
 	}
 
