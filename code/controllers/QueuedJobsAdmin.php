@@ -9,7 +9,7 @@ class QueuedJobsAdmin extends ModelAdmin {
 	private static $menu_title = 'Jobs';
 	private static $menu_icon = "queuedjobs/images/clipboard.png";
 	
-	private static $managed_models = array('QueuedJobDescriptor');
+	private static $managed_models = array('QueuedJobDescriptor','QueuedTask');
 
 	private static $dependencies = array(
 		'jobQueue'			=> '%$QueuedJobService',
