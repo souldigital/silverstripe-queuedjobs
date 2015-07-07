@@ -2,6 +2,7 @@
 
 
 [![Build Status](https://secure.travis-ci.org/silverstripe-australia/silverstripe-queuedjobs.png)](http://travis-ci.org/silverstripe-australia/silverstripe-queuedjobs)
+[![Scrutinizer](https://scrutinizer-ci.com/g/silverstripe-australia/silverstripe-queuedjobs/badges/quality-score.png)](https://scrutinizer-ci.com/g/silverstripe-australia/silverstripe-queuedjobs/)
 
 
 ## Maintainer Contact
@@ -67,7 +68,7 @@ The following will run the publish job in 1 day's time from now.
 
 * Make sure gearmand is installed
 * Get the gearman module from https://github.com/nyeholt/silverstripe-gearman
-* Create a _config/queuedjobs.yml file in your project with the following declaration
+* Create a \_config/queuedjobs.yml file in your project with the following declaration
 
 ```
 ---
@@ -104,6 +105,44 @@ queues - this can be done by manually calling the *setup()* and *process()* meth
 under these circumstances, try having *getJobType()* return *QueuedJob::IMMEDIATE* to have execution
 work immediately, without being persisted or executed via cron. If this works, next make sure your
 cronjob is configured and executing correctly. 
+
+If defining your own job classes, be aware that when the job is started on the queue, the job class
+is constructed _without_ parameters being passed; this means if you accept constructor args, you
+_must_ detect whether they're present or not before using them. See [this issue](https://github.com/silverstripe-australia/silverstripe-queuedjobs/issues/35) 
+and [this wiki page](https://github.com/silverstripe-australia/silverstripe-queuedjobs/wiki/Defining-queued-jobs) for 
+more information
+
+Ensure that notifications are configured so that you can get updates or stalled or broken jobs. You can 
+set the notification email address in your config as below:
+
+
+	:::yaml
+	Email:
+	  queued_job_admin_email: support@mycompany.com
+
+## Performance configuration
+
+By default this task will run until either 128mb or the limit specified by php_ini('memory_limit') is reached.
+
+You can adjust this with the below config change
+
+
+	:::yaml
+	# Force memory limit to 256 megabytes
+	QueuedJobsService:
+	  # Accepts b, k, m, or b suffixes
+	  memory_limit: 256m
+
+
+You can also enforce a time limit for each queue, after which the task will attempt a restart to release all
+resources. By default this is disabled, so you must specify this in your project as below:
+
+
+	:::yaml
+	# Force limit to 10 minutes
+	QueuedJobsService:
+	  time_limit: 600
+
 
 ## Indexes
 
