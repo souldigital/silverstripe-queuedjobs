@@ -11,13 +11,34 @@
  * @license BSD http://silverstripe.org/bsd-license/
  */
 abstract class AbstractQueuedJob implements QueuedJob {
-
+	/**
+	 * @var stdClass
+	 */
 	protected $jobData;
+
+	/**
+	 * @var array
+	 */
 	protected $messages = array();
+
+	/**
+	 * @var int
+	 */
 	protected $totalSteps = 0;
+
+	/**
+	 * @var int
+	 */
 	protected $currentStep = 0;
+
+	/**
+	 * @var boolean
+	 */
 	protected $isComplete = false;
 
+	/**
+	 * @return string
+	 */
 	public function getTitle() {
 		return "This needs a title!";
 	}
@@ -26,8 +47,7 @@ abstract class AbstractQueuedJob implements QueuedJob {
 	 * Sets a data object for persisting by adding its id and type to the serialised vars
 	 *
 	 * @param DataObject $object
-	 * @param string $name
-	 * 				A name to give it, if you want to store more than one
+	 * @param string $name A name to give it, if you want to store more than one
 	 */
 	protected function setObject(DataObject $object, $name = 'Object') {
 		$this->{$name . 'ID'} = $object->ID;
@@ -36,6 +56,7 @@ abstract class AbstractQueuedJob implements QueuedJob {
 
 	/**
 	 * @param string $name
+	 * @return DataObject|void
 	 */
 	protected function getObject($name = 'Object') {
 		$id = $this->{$name . 'ID'};
@@ -48,7 +69,7 @@ abstract class AbstractQueuedJob implements QueuedJob {
 	/**
 	 * Return a signature for this queued job
 	 *
-	 * @return String
+	 * @return string
 	 */
 	public function getSignature() {
 		return md5(get_class($this) . serialize($this->jobData));
@@ -58,6 +79,8 @@ abstract class AbstractQueuedJob implements QueuedJob {
 	 * Generate a somewhat random signature
 	 *
 	 * useful if you're want to make sure something is always added
+	 *
+	 * @return string
 	 */
 	protected function randomSignature() {
 		return md5(get_class($this) . time() . mt_rand(0, 100000));
@@ -66,7 +89,7 @@ abstract class AbstractQueuedJob implements QueuedJob {
 	/**
 	 * By default jobs should just go into the default processing queue
 	 *
-	 * @return String
+	 * @return string
 	 */
 	public function getJobType() {
 		return QueuedJob::QUEUED;
@@ -111,6 +134,9 @@ abstract class AbstractQueuedJob implements QueuedJob {
 
 	}
 
+	/**
+	 * @return stdClass
+	 */
 	public function getJobData() {
 		// okay, we NEED to store the subsite ID if there's one available
 		if (!$this->SubsiteID && class_exists('Subsite')) {
@@ -127,14 +153,19 @@ abstract class AbstractQueuedJob implements QueuedJob {
 		return $data;
 	}
 
+	/**
+	 * @param int $totalSteps
+	 * @param int $currentStep
+	 * @param boolean $isComplete
+	 * @param stdClass $jobData
+	 * @param array $messages
+	 */
 	public function setJobData($totalSteps, $currentStep, $isComplete, $jobData, $messages) {
 		$this->totalSteps = $totalSteps;
 		$this->currentStep = $currentStep;
 		$this->isComplete = $isComplete;
 		$this->jobData = $jobData;
 		$this->messages = $messages;
-
-
 	}
 
 	/**
@@ -170,7 +201,11 @@ abstract class AbstractQueuedJob implements QueuedJob {
 		}
 	}
 
-	public function addMessage($message, $severity='INFO') {
+	/**
+	 * @param string $message
+	 * @param string $severity
+	 */
+	public function addMessage($message, $severity = 'INFO') {
 		$severity = strtoupper($severity);
 		$this->messages[] = '[' . date('Y-m-d H:i:s') . "][$severity] $message";
 	}
@@ -197,5 +232,4 @@ abstract class AbstractQueuedJob implements QueuedJob {
 	public function __get($name) {
 		return isset($this->jobData->$name) ? $this->jobData->$name : null;
 	}
-
 }

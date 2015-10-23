@@ -26,6 +26,8 @@ interface QueuedJob {
 
 	/**
 	 * Gets a title for the job that can be used in listings
+	 *
+	 * @return string
 	 */
 	public function getTitle();
 
@@ -39,13 +41,14 @@ interface QueuedJob {
 	 *
 	 * If you have a job that absolutely must run multiple times, the AbstractQueuedJob class provides a time sensitive
 	 * randomSignature() method that can be used for returning a random signature each time
+	 *
+	 * @return string
 	 */
 	public function getSignature();
 
 	/**
 	 * Setup this queued job. This is only called the first time this job is executed
 	 * (ie when currentStep is 0)
-	 *
 	 */
 	public function setup();
 
@@ -58,7 +61,9 @@ interface QueuedJob {
 
 	/**
 	 * What type of job is this? Options are
-	 *
+	 * - QueuedJob::IMMEDIATE
+	 * - QueuedJob::QUEUED
+	 * - QueuedJob::LARGE
 	 */
 	public function getJobType();
 
@@ -87,22 +92,27 @@ interface QueuedJob {
 	 *		'messages' => a cumulative array of messages that have occurred during this job so far
 	 * )
 	 */
-    public function getJobData();
+	public function getJobData();
 
 	/**
 	 * Sets data about the job
 	 *
 	 * is an inverse of the getJobData() method, but being explicit about what data is set
 	 *
+	 * @param int $totalSteps
+	 * @param int $currentStep
+	 * @param boolean $isComplete
+	 * @param stdClass $jobData
+	 * @param array $messages
+	 *
 	 * @see QueuedJob::getJobData();
 	 */
 	public function setJobData($totalSteps, $currentStep, $isComplete, $jobData, $messages);
 
-
 	/**
 	 * Add an arbitrary text message into a job
 	 *
-	 * @param String $message
+	 * @param string $message
 	 */
 	public function addMessage($message);
 }

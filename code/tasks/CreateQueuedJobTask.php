@@ -1,7 +1,6 @@
 <?php
 
 /**
- *
  * A task that can be used to create a queued job.
  *
  * Useful to hook a queued job in to place that needs to exist if it doesn't already.
@@ -13,7 +12,9 @@
  * @license BSD http://silverstripe.org/bsd-license/
  */
 class CreateQueuedJobTask extends BuildTask {
-
+	/**
+	 * @return string
+	 */
 	public function getDescription() {
 		return _t(
 			'CreateQueuedJobTask.Description',
@@ -21,7 +22,10 @@ class CreateQueuedJobTask extends BuildTask {
 		);
 	}
 
-    public function run($request) {
+	/**
+	 * @param SS_HTTPRequest $request
+	 */
+	public function run($request) {
 		if (isset($request['name']) && ClassInfo::exists($request['name'])) {
 			$clz = $request['name'];
 			$job = new $clz;
@@ -29,25 +33,28 @@ class CreateQueuedJobTask extends BuildTask {
 			$job = new DummyQueuedJob(mt_rand(10, 100));
 		}
 
-        if (isset($request['start'])){
-            $start = strtotime($request['start']);
-            $now = time();
-            if ($start >= $now){
-                $friendlyStart = date('Y-m-d H:i:s', $start);
-                echo "Job ".$request['name']. " queued to start at: <b>".$friendlyStart."</b>";
-                singleton('QueuedJobService')->queueJob($job, $start);
-            } else {
-                echo "'start' parameter must be a date/time in the future, parseable with strtotime";
-            }
-        } else {
-            echo "Job Queued";
-            singleton('QueuedJobService')->queueJob($job);
-        }
+		if (isset($request['start'])) {
+			$start = strtotime($request['start']);
+			$now = time();
+			if ($start >= $now) {
+				$friendlyStart = date('Y-m-d H:i:s', $start);
+				echo "Job ".$request['name']. " queued to start at: <b>".$friendlyStart."</b>";
+				singleton('QueuedJobService')->queueJob($job, $start);
+			} else {
+				echo "'start' parameter must be a date/time in the future, parseable with strtotime";
+			}
+		} else {
+			echo "Job Queued";
+			singleton('QueuedJobService')->queueJob($job);
+		}
 
 	}
 }
 
 class DummyQueuedJob extends AbstractQueuedJob implements QueuedJob {
+	/**
+	 * @param int $number
+	 */
 	public function __construct($number = 0) {
 		if ($number) {
 			$this->startNumber = $number;
@@ -55,12 +62,18 @@ class DummyQueuedJob extends AbstractQueuedJob implements QueuedJob {
 		}
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getTitle() {
 		return "Some test job for ".$this->startNumber.' seconds';
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getJobType() {
-		return  QueuedJob::QUEUED;
+		return QueuedJob::QUEUED;
 	}
 
 	public function setup() {

@@ -9,7 +9,9 @@
  * @license BSD http://silverstripe.org/bsd-license/
  */
 class PublishItemsJob extends AbstractQueuedJob implements QueuedJob {
-
+	/**
+	 * @param DataObject $rootNodeID
+	 */
 	public function __construct($rootNodeID = null) {
 		// this value is automatically persisted between processing requests for
 		// this job
@@ -22,6 +24,11 @@ class PublishItemsJob extends AbstractQueuedJob implements QueuedJob {
 		return DataObject::get_by_id('Page', $this->rootID);
 	}
 
+	/**
+	 * Defines the title of the job
+	 *
+	 * @return string
+	 */
 	public function getTitle() {
 		return _t(
 			'PublishItemsJob.Title',
@@ -38,9 +45,9 @@ class PublishItemsJob extends AbstractQueuedJob implements QueuedJob {
 	 * process everything - note that this does not need to be 100% accurate, but it's nice
 	 * to give a reasonable approximation
 	 *
+	 * @return int
 	 */
 	public function getJobType() {
-
 		$this->totalSteps = 'Lots';
 		return QueuedJob::QUEUED;
 	}
@@ -56,7 +63,6 @@ class PublishItemsJob extends AbstractQueuedJob implements QueuedJob {
 	 * we never overload it with content
 	 */
 	public function setup() {
-
 		if (!$this->getRoot()) {
 			// we're missing for some reason!
 			$this->isComplete = true;
@@ -83,7 +89,6 @@ class PublishItemsJob extends AbstractQueuedJob implements QueuedJob {
 			$this->isComplete = true;
 			return;
 		}
-
 
 		// we need to always increment! This is important, because if we don't then our container
 		// that executes around us thinks that the job has died, and will stop it running.
@@ -117,5 +122,4 @@ class PublishItemsJob extends AbstractQueuedJob implements QueuedJob {
 			return;
 		}
 	}
-
 }

@@ -8,7 +8,6 @@
  * When the queues are scanned, a job is reloaded and processed. Ignoring the persistence and reloading, it looks
  * something like
  *
-
  * job->getJobType();
  * job->getJobData();
  * data->write();
@@ -23,7 +22,9 @@
  * @license BSD http://silverstripe.org/bsd-license/
  */
 class QueuedJobService {
-
+	/**
+	 * @var int
+	 */
 	private static $stall_threshold = 3;
 
 	/**
@@ -68,7 +69,7 @@ class QueuedJobService {
 	/**
 	 * The location for immediate jobs to be stored in
 	 *
-	 * @var String
+	 * @var string
 	 */
 	private static $cache_dir = 'queuedjobs';
 
@@ -112,6 +113,7 @@ class QueuedJobService {
 	 *			The date (in Y-m-d H:i:s format) to start execution after
 	 * @param int $userId
 	 *			The ID of a user to execute the job as. Defaults to the current user
+	 * @return int
 	 */
 	public function queueJob(QueuedJob $job, $startAfter = null, $userId = null, $queueName = null) {
 
@@ -120,7 +122,10 @@ class QueuedJobService {
 		// see if we already have this job in a queue
 		$filter = array(
 			'Signature' => $signature,
-			'JobStatus' => QueuedJob::STATUS_NEW,
+			'JobStatus' => array(
+				QueuedJob::STATUS_NEW,
+				QueuedJob::STATUS_INIT
+			)
 		);
 
 		$existing = DataList::create('QueuedJobDescriptor')->filter($filter)->first();
@@ -206,7 +211,13 @@ class QueuedJobService {
 			}
 		}
 
-		$job->setJobData($jobDescriptor->TotalSteps, $jobDescriptor->StepsProcessed, $jobDescriptor->JobStatus == QueuedJob::STATUS_COMPLETE, $jobData, $messages);
+		$job->setJobData(
+			$jobDescriptor->TotalSteps,
+			$jobDescriptor->StepsProcessed,
+			$jobDescriptor->JobStatus == QueuedJob::STATUS_COMPLETE,
+			$jobData,
+			$messages
+		);
 	}
 
 	/**
@@ -216,7 +227,7 @@ class QueuedJobService {
 	 * @param string $type Job type
 	 * @return QueuedJobDescriptor
 	 */
-	public function getNextPendingJob($type=null) {
+	public function getNextPendingJob($type = null) {
 		// Filter jobs by type
 		$type = $type ?: QueuedJob::QUEUED;
 		$list = QueuedJobDescriptor::get()
@@ -248,6 +259,7 @@ class QueuedJobService {
 				SS_DateTime::now()->getValue()
 			))
 			->first();
+
 		return $newJob;
 	}
 
@@ -363,7 +375,7 @@ class QueuedJobService {
 		$this->copyDescriptorToJob($jobDescriptor, $job);
 
 		// see if it needs 'setup' or 'restart' called
-		if (!$jobDescriptor->StepsProcessed) {
+		if ($jobDescriptor->StepsProcessed <= 0) {
 			$job->setup();
 		} else {
 			$job->prepareForRestart();
@@ -402,7 +414,7 @@ class QueuedJobService {
 			return false;
 		}
 
-		if(DB::getConn()->affectedRows() === 0) {
+		if(DB::getConn()->affectedRows() === 0 && $jobDescriptor->JobStatus !== QueuedJob::STATUS_INIT) {
 			return false;
 		}
 
@@ -729,8 +741,7 @@ class QueuedJobService {
 	 *			includes recently finished jobs
 	 */
 	public function getJobList($type = null, $includeUpUntil = 0) {
-		$jobs = DataObject::get('QueuedJobDescriptor', $this->getJobListFilter($type, $includeUpUntil));
-		return $jobs;
+		return DataObject::get('QueuedJobDescriptor', $this->getJobListFilter($type, $includeUpUntil));
 	}
 
 	/**
@@ -741,7 +752,7 @@ class QueuedJobService {
 	 * @param int $includeUpUntil
 	 *			The number of seconds to include jobs that have just finished, allowing a job list to be built that
 	 *			includes recently finished jobs
-	 * @return String
+	 * @return string
 	 */
 	public function getJobListFilter($type = null, $includeUpUntil = 0) {
 		$filter = array('JobStatus <>' => QueuedJob::STATUS_COMPLETE);
