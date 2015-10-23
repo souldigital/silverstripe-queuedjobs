@@ -81,7 +81,7 @@ class QueuedJobService {
 	 *
 	 * @var TaskRunnerEngine
 	 */
-	public $queuedRunner;
+	public $queueRunner;
 
 	/**
 	 * Register our shutdown handler
@@ -101,7 +101,7 @@ class QueuedJobService {
 		}
 	}
 
-    /**
+	/**
 	 * Adds a job to the queue to be started
 	 *
 	 * Relevant data about the job will be persisted using a QueuedJobDescriptor
